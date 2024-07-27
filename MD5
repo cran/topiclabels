@@ -1,0 +1,14 @@
+760e02b2597e6c23a10889200a2c3213 *DESCRIPTION
+c45f0af2a3731d7f565a8e37b9e1474d *NAMESPACE
+c0e40a734d2b719e042b0fb841bfc42c *R/as.lm_topic_labels.R
+0d3dd9d90dd839f6566e7bda90d66d49 *R/helpers.R
+88daba0ef67ebdac0ddb77bb13763887 *R/interact.R
+2ea3d92ebb9fe642ac583e3a8f224bd6 *R/label_topics.R
+e53c3b47577635769050c9bf5a41abb3 *R/prompts.R
+9e39c33f43981f1d6ad8882ac5dd3091 *R/topiclabels-package.R
+1c10144ffa30047be5ce96b2f541d59d *README.md
+a321b58287ef80aaa4f9e05f4f4802d2 *inst/CITATION
+379bd39991a62ba54aa8715696d6f48c *man/as.lm_topic_labels.Rd
+bc1e0a3a2444f5c216825fd5e50df0cf *man/label_topics.Rd
+c1a51949634fd5da6a0d7875168a0a99 *man/topiclabels-package.Rd
+db46d2fb41837624f5511632f0ff317f *tests/testthat.R

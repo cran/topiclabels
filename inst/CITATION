@@ -1,0 +1,17 @@
+citHeader("To cite topiclabels in publications use:")
+
+year = sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date)
+vers = paste("R package version", meta$Version)
+
+bibentry(bibtype = "Manual",
+  title        = "topiclabels: Automated Topic Labeling with Language Models",
+  author       = "Jonas Rieger and Fritz Peters and Andreas Fischer and Tim Lauer and André Bittermann",
+  year         = year,
+  url          = "https://github.com/PetersFritz/topiclabels",
+  note         = vers,
+  textVersion  =
+  paste("Rieger et al. (", year, "). ",
+        "topiclabels: Automated Topic Labeling with Language Models. ",
+        vers, ". ",
+        sep = "")
+)
