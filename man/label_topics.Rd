@@ -2,9 +2,13 @@
 % Please edit documentation in R/label_topics.R
 \name{label_topics}
 \alias{label_topics}
+\alias{label_topics.default}
+\alias{label_topics.labelTopics}
 \title{Automatically label topics using language models based on top terms}
 \usage{
-label_topics(
+label_topics(...)
+
+\method{label_topics}{default}(
   terms,
   model = "mistralai/Mixtral-8x7B-Instruct-v0.1",
   params = list(),
@@ -14,23 +18,33 @@ label_topics(
   max_length_label = 5L,
   prompt_type = c("json", "plain", "json-roles"),
   max_wait = 0L,
-  progress = TRUE
+  progress = TRUE,
+  ...
 )
+
+\method{label_topics}{labelTopics}(terms, stm_type = c("prob", "frex", "lift", "score"), ...)
 }
 \arguments{
+\item{...}{additional arguments}
+
 \item{terms}{[\code{list (k) of character}]\cr
 List (each list entry represents one topic) of \code{character} vectors
 containing the top terms representing the topics that are to be labeled.
 If a single \code{character} vector is passed, this is interpreted as
 the top terms of a single topic. If a \code{character} matrix is passed,
-each column is interpreted as the top terms of a topic.}
+each column is interpreted as the top terms of a topic.
+The outputs of the packages \code{stm} (\code{label_topics} object, please
+specify the type of output using the parameter \code{stm_type}) and the
+\code{BTM} package (\code{list} of \code{data.frame}s with entries
+\code{token} and \code{probability} each) are also supported.}
 
 \item{model}{[\code{character(1)}]\cr
 Optional.\cr
 The language model to use for labeling the topics.
 The model must be accessible via the Huggingface API. Default is
 \code{mistralai/Mixtral-8x7B-Instruct-v0.1}. Other promising models are
-\code{HuggingFaceH4/zephyr-7b-beta} or \code{tiiuae/falcon-7b-instruct}.}
+\code{HuggingFaceH4/zephyr-7b-beta} or \code{tiiuae/falcon-7b-instruct}.
+To find more models see: https://huggingface.co/models?other=conversational&sort=likes.}
 
 \item{params}{[\code{named list}]\cr
 Optional.\cr
@@ -69,6 +83,9 @@ user is asked every time the rate limit is reached.}
 \item{progress}{[\code{logical(1)}]\cr
 Should a nice progress bar be shown? Turning it off, could lead to
 significantly faster calculation. Default ist \code{TRUE}.}
+
+\item{stm_type}{[\code{character(1)}]\cr
+For stm topics, which type of word weighting should be used? Default is "prob".}
 }
 \value{
 [\code{named list}] \code{\link[topiclabels:as.lm_topic_labels]{lm_topic_labels}} object.

@@ -38,12 +38,17 @@
 #' If a single \code{character} vector is passed, this is interpreted as
 #' the top terms of a single topic. If a \code{character} matrix is passed,
 #' each column is interpreted as the top terms of a topic.
+#' The outputs of the packages \code{stm} (\code{label_topics} object, please
+#' specify the type of output using the parameter \code{stm_type}) and the
+#' \code{BTM} package (\code{list} of \code{data.frame}s with entries
+#' \code{token} and \code{probability} each) are also supported.
 #' @param model [\code{character(1)}]\cr
 #' Optional.\cr
 #' The language model to use for labeling the topics.
 #' The model must be accessible via the Huggingface API. Default is
 #' \code{mistralai/Mixtral-8x7B-Instruct-v0.1}. Other promising models are
 #' \code{HuggingFaceH4/zephyr-7b-beta} or \code{tiiuae/falcon-7b-instruct}.
+#' To find more models see: https://huggingface.co/models?other=conversational&sort=likes.
 #' @param params [\code{named list}]\cr
 #' Optional.\cr
 #' Model parameters to pass. Default parameters for common models are
@@ -66,6 +71,8 @@
 #' Which prompt type should be applied. We implemented various prompt types that
 #' differ mainly in how the response of the language model is requested. Examples
 #' are given in the details section. Default is the request of a json output.
+#' @param stm_type [\code{character(1)}]\cr
+#' For stm topics, which type of word weighting should be used? Default is "prob".
 #' @param max_wait [\code{integer(1)}]\cr
 #' In the case that the rate limit on Huggingface is reached: How long
 #' (in minutes) should the system wait until it asks the user whether
@@ -74,6 +81,7 @@
 #' @param progress [\code{logical(1)}]\cr
 #' Should a nice progress bar be shown? Turning it off, could lead to
 #' significantly faster calculation. Default ist \code{TRUE}.
+#' @param ... additional arguments
 #' @return [\code{named list}] \code{\link[topiclabels:as.lm_topic_labels]{lm_topic_labels}} object.
 #'
 #' @examples
@@ -101,7 +109,11 @@
 #' }
 #' @export label_topics
 
-label_topics = function(
+label_topics = function(...) UseMethod("label_topics")
+
+#' @rdname label_topics
+#' @export
+label_topics.default = function(
     terms,
     model = "mistralai/Mixtral-8x7B-Instruct-v0.1",
     params = list(),
@@ -111,11 +123,17 @@ label_topics = function(
     max_length_label = 5L,
     prompt_type = c("json", "plain", "json-roles"),
     max_wait = 0L,
-    progress = TRUE){
+    progress = TRUE, ...){
 
   prompt_type = match.arg(prompt_type)
   params = c(params, .default_model_params(model))
   params = params[!duplicated(names(params))]
+
+  # BTM support:
+  if(is.list(terms) & inherits(terms[[1]], "data.frame")){
+    terms = lapply(terms, function(y){paste(y$token, collapse = ", ")})
+  }
+
   if(!is.list(terms)){
     if(is.matrix(terms)) terms = unname(as.list(as.data.frame(terms)))
     else terms = list(terms)
@@ -159,7 +177,13 @@ label_topics = function(
                                params = params,
                                prompt = prompts[i],
                                token = token)[[1]][[1]]
-    while(grepl("rate limit reached", model_output[i], ignore.case = TRUE)){
+    need_hf_token_or_rate_limit =
+      grepl("(please)? ?log in|(hf)? ?access token",
+            model_output[i], ignore.case = TRUE) ||
+      grepl("rate limit reached", model_output[i], ignore.case = TRUE)
+    if(need_hf_token_or_rate_limit)
+      message("Message from HuggingFace: ", model_output[i])
+    while(need_hf_token_or_rate_limit){
       if(as.numeric(difftime(Sys.time(), waited, units = "mins")) > max_wait){
         max_wait = .ask_user()
         if(max_wait == 0L){
@@ -184,6 +208,10 @@ label_topics = function(
                                  params = params,
                                  prompt = prompts[i],
                                  token = token)[[1]][[1]]
+      need_hf_token_or_rate_limit =
+        grepl("(please)? ?log in|(hf)? ?access token",
+              model_output[i], ignore.case = TRUE) ||
+        grepl("rate limit reached", model_output[i], ignore.case = TRUE)
     }
     pb$tick()
   }
@@ -193,4 +221,20 @@ label_topics = function(
     terms = terms, prompts = prompts, model = model, params = params, with_token = !(token == ""),
     time = as.numeric(difftime(time_end, time_start, units = "mins")),
     model_output = model_output, labels = .extract_labels(model_output, type = prompt_type))
+}
+
+#' @rdname label_topics
+#' @export
+# stm support:
+label_topics.labelTopics = function(
+    terms,
+    stm_type = c("prob", "frex", "lift", "score"), ...){
+
+  stm_type = match.arg(stm_type)
+  assert_character(stm_type, len = 1, any.missing = FALSE)
+
+  terms = apply(terms[[stm_type]], 1, paste, collapse = ", ")
+  terms = as.list(terms)
+
+  label_topics(terms = terms, ...)
 }

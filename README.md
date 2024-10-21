@@ -1,16 +1,19 @@
-# topiclabels
+# topiclabels <img src="man/figures/topiclabels.jpg" align="right" alt="topiclabels logo" width="150" />
 [![CRAN](https://www.r-pkg.org/badges/version/topiclabels)](https://cran.r-project.org/package=topiclabels)
 [![R build status](https://github.com/PetersFritz/topiclabels/workflows/R-CMD-check/badge.svg)](https://github.com/PetersFritz/topiclabels/actions)
 
 ## Automated Topic Labeling with Language Models
 
-topiclabels leverages (large) language models for automatic topic labeling. The main function converts a list of top terms into a label for each topic. Hence, it is complementary to any topic modeling package that produces a list of top terms for each topic. While human judgement is indispensable for topic validation (i.e., inspecting top terms and most representative documents), automatic topic labeling can be a valuable tool for researchers in various scenarios.
+topiclabels leverages (large) language models for automatic topic labeling. The main function converts a list of top terms into a label for each topic. Hence, it is complementary to any topic modeling package that produces a list of top terms for each topic. While human judgement is indispensable for topic validation (i.e., inspecting top terms and most representative documents), automatic topic labeling can be a valuable tool for researchers in various scenarios (see also our [Vignette](https://htmlpreview.github.io/?https://github.com/PetersFritz/topiclabels/blob/main/performance/Compare_LLM_and_human_labels.html)).  
+
+<img src="man/figures/topiclabels.gif" alt="topiclabels animation" width="400" />
 
 ## References
 
 *Related work*:
-* [Li et al. (2023). Can Large Language Models (LLM) label topics from a topic model?](https://osf.io/preprints/socarxiv/23x4m)
 * [Grootendorst (2023). Topic Modeling with Llama 2. Create easily interpretable topics with Large Language Models](https://newsletter.maartengrootendorst.com/p/topic-modeling-with-llama-2?trk=feed_main-feed-card_feed-article-content)
+* [Li et al. (2023). Can Large Language Models (LLM) label topics from a topic model?](https://osf.io/preprints/socarxiv/23x4m)
+* [Wanna et al. (2024). TopicTag: Automatic Annotation of NMF Topic Models Using Chain of Thought and Prompt Tuning with LLMs](https://arxiv.org/abs/2407.19616)
 
 *Topic models (selection)*:
 * [BERTopic](https://github.com/MaartenGr/BERTopic)
@@ -25,6 +28,10 @@ For bug reports (lack of documentation, misleading or wrong documentation, unexp
 Pull requests are welcome and will be included at the discretion of the author.
 
 ## Installation
+You can install the recent CRAN version using 
+``` r
+install.packages("topiclabels")
+```
 
 For installation of the development version use [devtools](https://cran.r-project.org/package=devtools):
 
@@ -40,10 +47,11 @@ First of all, you should store your Huggingface token in the variable ``token``.
 ``` r
 token = "" # set your hf token here
 ```
-We would now like to label two topics, one with the three top terms *zidane, figo, kroos* and the other with the three top terms *gas, power, wind*.
+We would now like to label two topics, one with the three top terms *zidane, figo, kroos* and the other with the three top terms *gas, power, wind*. Here, we show three typical variants of topic representation:
 ``` r
 topwords_matrix = matrix(c("zidane", "figo", "kroos", "gas", "power", "wind"), ncol = 2)
 topwords_list = list(c("zidane", "figo", "kroos"), c("gas", "power", "wind"))
+topwords_vector = c("zidane, figo, kroos", "gas, power, wind")
 ```
 A common way to represent top terms is a matrix structure.
 ```
@@ -62,10 +70,16 @@ topwords_list
 [[2]]
 [1] "gas"   "power" "wind" 
 ```
-Using one of the following two calls
+If you have stored your top terms as vectors (e.g., in a data table), it may look like this:
+```
+topwords_vector
+[1] "zidane, figo, kroos" "gas, power, wind" 
+```
+Using one of the following three calls
 ``` r
 label_topics(topwords_matrix, token = token)
 label_topics(topwords_list, token = token)
+label_topics(as.list(topwords_vector), token = token)
 ```
 the labels for the two topics can then be generated, which yields
 ```
